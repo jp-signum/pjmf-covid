@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState, useMemo } from "react";
 import { CovidRecord } from "@/lib/fetchCovidData";
 
 type Props = {
@@ -9,6 +10,37 @@ type Props = {
 };
 
 export default function CovidDataTable({ data }: Props) {
+  const [sortBy, setSortBy] = useState<keyof CovidRecord | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const sortedRows = useMemo(() => {
+    if (!sortBy) return data.slice(0, 25);
+
+    const sorted = [...data].sort((a, b) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
+
+      if (typeof valA === "number" && typeof valB === "number") {
+        return sortDirection === "asc" ? valA - valB : valB - valA;
+      }
+
+      return sortDirection === "asc"
+        ? String(valA).localeCompare(String(valB))
+        : String(valB).localeCompare(String(valA));
+    });
+
+    return sorted.slice(0, 25);
+  }, [data, sortBy, sortDirection]);
+
+  const handleSort = (column: keyof CovidRecord) => {
+    if (sortBy === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortDirection("asc");
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-4">
@@ -17,16 +49,35 @@ export default function CovidDataTable({ data }: Props) {
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm border border-gray-200">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="px-3 py-2 border">State</th>
-              <th className="px-3 py-2 border">Year</th>
-              <th className="px-3 py-2 border">Month</th>
-              <th className="px-3 py-2 border">Rate per 100k</th>
+              {(
+                [
+                  "state",
+                  "year",
+                  "month",
+                  "rate_per_100k",
+                ] as (keyof CovidRecord)[]
+              ).map((col) => (
+                <th
+                  key={col}
+                  className="px-3 py-2 border cursor-pointer select-none"
+                  onClick={() => handleSort(col)}
+                >
+                  {col === "rate_per_100k"
+                    ? "Rate per 100k"
+                    : col.charAt(0).toUpperCase() + col.slice(1)}
+                  {sortBy === col && (
+                    <span className="ml-1 text-gray-500">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {data.slice(0, 25).map((row, i) => (
+            {sortedRows.map((row, i) => (
               <tr key={i} className="even:bg-gray-50">
                 <td className="px-3 py-2 border">{row.state}</td>
                 <td className="px-3 py-2 border">{row.year}</td>
