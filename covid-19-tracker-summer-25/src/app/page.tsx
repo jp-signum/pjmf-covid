@@ -3,14 +3,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import NationalTrendChart from "@/components/NationalTrendChart";
+
 import { fetchCovidData, CovidRecord } from "@/lib/fetchCovidData";
 import { groupByMonth } from "@/lib/groupByMonth";
-
 
 export default function HomePage() {
   const [data, setData] = useState<CovidRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<
+    { label: string; avgRate: number }[]
+  >([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,6 +33,7 @@ export default function HomePage() {
         );
 
         const grouped = groupByMonth(result);
+        setChartData(grouped);
 
         console.log("Grouped monthly data (first 5):", grouped.slice(0, 5));
         console.log("Total months:", grouped.length);
@@ -75,7 +81,9 @@ export default function HomePage() {
             {JSON.stringify(data.slice(0, 3), null, 2)}
           </pre>
 
-          <p className="text-gray-500">Charts and tables coming soon...</p>
+          {!loading && !error && chartData.length > 0 && (
+            <NationalTrendChart data={chartData} />
+          )}
         </div>
       )}
     </main>
