@@ -5,6 +5,8 @@
 import { useEffect, useState } from "react";
 
 import NationalTrendChart from "@/components/NationalTrendChart";
+import CovidDataTable from "@/components/CovidDataTable";
+
 
 import { fetchCovidData, CovidRecord } from "@/lib/fetchCovidData";
 import { groupByMonth } from "@/lib/groupByMonth";
@@ -83,6 +85,10 @@ export default function HomePage() {
 
           {!loading && !error && chartData.length > 0 && (
             <NationalTrendChart data={chartData} />
+          )}
+
+          {!loading && !error && data.length > 0 && (
+            <CovidDataTable data={data} />
           )}
         </div>
       )}
