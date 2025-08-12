@@ -1,4 +1,4 @@
-// src/components/NationalTrendChart.tsx
+// src/components/CovidTrendChart.tsx
 
 "use client";
 
@@ -24,13 +24,16 @@ ChartJS.register(
 
 type Props = {
   data: { label: string; avgRate: number }[];
+  selectedStateName: string;
 };
 
-export default function NationalTrendChart({ data }: Props) {
+export default function CovidTrendChart({ data, selectedStateName }: Props) {
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">
-        National COVID‑19 Hospitalization Trend
+    <div className="bg-white p-6 rounded shadow border border-gray-200">
+      <h2 className="text-lg font-semibold mb-4 text-[#007d99]">
+        {selectedStateName === "All"
+          ? "National COVID‑19 Hospitalization Trend"
+          : `COVID‑19 Trend for ${selectedStateName}`}
       </h2>
       <Line
         data={{
@@ -39,8 +42,8 @@ export default function NationalTrendChart({ data }: Props) {
             {
               label: "Average Rate per 100,000",
               data: data.map((d) => d.avgRate),
-              borderColor: "rgba(75,192,192,1)",
-              backgroundColor: "rgba(75,192,192,0.2)",
+              borderColor: "#007D99", // PJMF Blue
+              backgroundColor: "rgba(0, 125, 153, 0.2)",
               borderWidth: 2,
               fill: true,
               tension: 0.2,

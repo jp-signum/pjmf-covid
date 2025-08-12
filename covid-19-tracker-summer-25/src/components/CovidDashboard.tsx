@@ -5,7 +5,7 @@
 import { useState, useMemo } from "react";
 import { CovidRecord } from "@/lib/fetchCovidData";
 import CovidDataTable from "./CovidTable";
-import CovidTrendChart from './CovidTrendChart';
+import CovidTrendChart from "./CovidTrendChart";
 
 type Props = {
   data: CovidRecord[];
@@ -24,6 +24,23 @@ export default function CovidDashboard({ data }: Props) {
     if (selectedState === "All") return data;
     return data.filter((d) => d.state === selectedState);
   }, [data, selectedState]);
+
+  const groupedChartData = useMemo(() => {
+    const monthMap: Record<string, number[]> = {};
+
+    filteredData.forEach((record) => {
+      const key = `${record.year}-${String(record.month).padStart(2, "0")}`;
+      if (!monthMap[key]) monthMap[key] = [];
+      monthMap[key].push(record.rate_per_100k);
+    });
+
+    return Object.entries(monthMap)
+      .map(([label, rates]) => ({
+        label,
+        avgRate: rates.reduce((sum, r) => sum + r, 0) / rates.length,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [filteredData]);
 
   return (
     <section className="bg-white text-gray-900 min-h-screen max-w-6xl mx-auto px-4 py-10 space-y-8 rounded shadow">
@@ -54,10 +71,10 @@ export default function CovidDashboard({ data }: Props) {
         </div>
       </header>
 
-      {/* Chart placeholder — PJMF colors will apply here */}
-      {/* {selectedState !== 'All' && (
-        <CovidTrendChart data={filteredData} state={selectedState} />
-      )} */}
+      <CovidTrendChart
+        data={groupedChartData}
+        selectedStateName={selectedState}
+      />
 
       <CovidDataTable data={filteredData} />
     </section>
