@@ -4,6 +4,8 @@
 
 import { useEffect, useState } from "react";
 import { fetchCovidData, CovidRecord } from "@/lib/fetchCovidData";
+import { groupByMonth } from "@/lib/groupByMonth";
+
 
 export default function HomePage() {
   const [data, setData] = useState<CovidRecord[]>([]);
@@ -24,6 +26,18 @@ export default function HomePage() {
           "Unique states/sites:",
           Array.from(new Set(result.map((d) => d.state)))
         );
+
+        const grouped = groupByMonth(result);
+
+        console.log("Grouped monthly data (first 5):", grouped.slice(0, 5));
+        console.log("Total months:", grouped.length);
+        console.log("Max rate:", Math.max(...grouped.map((d) => d.avgRate)));
+        console.log("Min rate:", Math.min(...grouped.map((d) => d.avgRate)));
+
+        const isSorted = grouped.every(
+          (d, i, arr) => i === 0 || arr[i - 1].label <= d.label
+        );
+        console.log("Data sorted chronologically?", isSorted);
 
         if (result.some((d) => d.year > new Date().getFullYear())) {
           console.warn("🚨 Future dates found in dataset");
