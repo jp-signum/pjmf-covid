@@ -2,17 +2,20 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CovidRecord } from "@/lib/fetchCovidData";
 
 type Props = {
   data: CovidRecord[];
 };
 
+const PAGE_SIZE = 25;
+
 export default function CovidDataTable({ data }: Props) {
   const [sortBy, setSortBy] = useState<keyof CovidRecord | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedState, setSelectedState] = useState<string>("All");
+  const [page, setPage] = useState<number>(1);
 
   const availableStates = useMemo(() => {
     return Array.from(
@@ -25,10 +28,10 @@ export default function CovidDataTable({ data }: Props) {
     return data.filter((d) => d.state === selectedState);
   }, [data, selectedState]);
 
-  const sortedRows = useMemo(() => {
-    if (!sortBy) return filtered.slice(0, 25);
+  const sorted = useMemo(() => {
+    if (!sortBy) return filtered;
 
-    const sorted = [...filtered].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const valA = a[sortBy];
       const valB = b[sortBy];
 
@@ -40,9 +43,19 @@ export default function CovidDataTable({ data }: Props) {
         ? String(valA).localeCompare(String(valB))
         : String(valB).localeCompare(String(valA));
     });
-
-    return sorted.slice(0, 25);
   }, [filtered, sortBy, sortDirection]);
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return sorted.slice(start, start + PAGE_SIZE);
+  }, [sorted, page]);
+
+  // Reset to page 1 on filter/sort change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedState, sortBy, sortDirection]);
 
   const handleSort = (column: keyof CovidRecord) => {
     if (sortBy === column) {
@@ -108,7 +121,7 @@ export default function CovidDataTable({ data }: Props) {
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row, i) => (
+            {paginatedRows.map((row, i) => (
               <tr key={i} className="even:bg-gray-50">
                 <td className="px-3 py-2 border">{row.state}</td>
                 <td className="px-3 py-2 border">{row.year}</td>
@@ -122,9 +135,29 @@ export default function CovidDataTable({ data }: Props) {
         </table>
 
         <p className="mt-2 text-xs text-gray-500">
-          Showing {Math.min(sortedRows.length, 25)} of{" "}
-          {filtered.length.toLocaleString()} records
+          Showing {paginatedRows.length} of {filtered.length.toLocaleString()}{" "}
+          records
         </p>
+
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
+            className="px-4 py-2 text-sm border rounded disabled:opacity-50 cursor-pointer"
+          >
+            Previous
+          </button>
+          <span className="text-sm">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages}
+            className="px-4 py-2 text-sm border rounded disabled:opacity-50 cursor-pointer"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
