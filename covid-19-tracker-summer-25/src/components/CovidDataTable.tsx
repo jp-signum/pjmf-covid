@@ -12,11 +12,23 @@ type Props = {
 export default function CovidDataTable({ data }: Props) {
   const [sortBy, setSortBy] = useState<keyof CovidRecord | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedState, setSelectedState] = useState<string>("All");
+
+  const availableStates = useMemo(() => {
+    return Array.from(
+      new Set(data.map((d) => d.state).filter((s) => s && s !== "COVID-NET"))
+    ).sort();
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    if (selectedState === "All") return data;
+    return data.filter((d) => d.state === selectedState);
+  }, [data, selectedState]);
 
   const sortedRows = useMemo(() => {
-    if (!sortBy) return data.slice(0, 25);
+    if (!sortBy) return filtered.slice(0, 25);
 
-    const sorted = [...data].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       const valA = a[sortBy];
       const valB = b[sortBy];
 
@@ -30,7 +42,7 @@ export default function CovidDataTable({ data }: Props) {
     });
 
     return sorted.slice(0, 25);
-  }, [data, sortBy, sortDirection]);
+  }, [filtered, sortBy, sortDirection]);
 
   const handleSort = (column: keyof CovidRecord) => {
     if (sortBy === column) {
@@ -46,6 +58,25 @@ export default function CovidDataTable({ data }: Props) {
       <h2 className="text-xl font-semibold mb-4">
         Raw COVID-19 Hospitalization Data
       </h2>
+
+      <div className="mb-4">
+        <label htmlFor="state-filter" className="text-sm font-medium mr-2">
+          Filter by state:
+        </label>
+        <select
+          id="state-filter"
+          value={selectedState}
+          onChange={(e) => setSelectedState(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded text-sm"
+        >
+          <option value="All">All</option>
+          {availableStates.map((state) => (
+            <option key={state} value={state}>
+              {state}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm border border-gray-200">
@@ -89,8 +120,10 @@ export default function CovidDataTable({ data }: Props) {
             ))}
           </tbody>
         </table>
+
         <p className="mt-2 text-xs text-gray-500">
-          Showing 25 of {data.length.toLocaleString()} records
+          Showing {Math.min(sortedRows.length, 25)} of{" "}
+          {filtered.length.toLocaleString()} records
         </p>
       </div>
     </div>
