@@ -13,7 +13,7 @@ TODO
 - **Framework:** Next.js (React + API routes)
 - **Styling:** Tailwind CSS
 - **Charting:** Chart.js (via `react-chartjs-2`)
-- **Data Handling:** `papaparse` for CSV parsing
+- **Data Handling:** Native JSON parsing from CDC Socrata API
 - **Table:** Custom React components (sortable/filterable)
 
 ---
@@ -73,13 +73,14 @@ The data used in this project comes from the CDC's COVID-NET dataset, which repo
 
 Dataset: COVID-NET Surveillance - Monthly Hospitalization Rates
 
-Direct CSV URL: https://data.cdc.gov/api/views/cf5u-bm9w/rows.csv?accessType=DOWNLOAD
+[JSON Endpoint](https://data.cdc.gov/api/views/cf5u-bm9w/rows.json?accessType=DOWNLOAD)
 
 Last Updated: August 11, 2025
 
-The app dynamically pulls this data and parses it for visualization. A fallback static copy (/public/fallback.csv) is included for testing or offline use.
+The app dynamically pulls this data and parses it for visualization. A fallback static copy (/public/fallback.json) is included for testing or offline use.
 
 ## Assumptions
+
 - The CDC’s CSV endpoint is always reachable and returns a consistent schema
 
 - “Automatically pulls new data” means fetches latest CSV on API or page load
